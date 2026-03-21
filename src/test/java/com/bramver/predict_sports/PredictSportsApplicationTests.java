@@ -39,8 +39,10 @@ class PredictSportsApplicationTests {
 
     @Test
     @WithMockUser
-    void shouldNotReturnMatchdayWhenIdIsUknown() throws Exception {
+    void shouldNotReturnMatchdayWhenIdIsUnknown() throws Exception {
         mockMvc.perform(get("/api/matchday/999"))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/matchday/-1"))
                 .andExpect(status().isNotFound());
     }
 

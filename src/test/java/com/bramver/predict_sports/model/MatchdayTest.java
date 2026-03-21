@@ -7,27 +7,33 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class MatchdayTest {
     private Matchday matchday;
-
+    private final String testSeason = "2025/2026";
     @BeforeEach
     public void initialize() {
-        this.matchday = new Matchday();
+
+        this.matchday = new Matchday(testSeason);
+    }
+
+    @Test
+    public void matchdayReturnsCorrectSeason() {
+        assertThat(matchday.getSeason()).isEqualTo(testSeason);
     }
 
     @Test
     public void matchdayListIsEmptyAtBeginning() {
-        assertThat(matchday.matchList().size()).isEqualTo(0);
+        assertThat(matchday.getMatchList().size()).isEqualTo(0);
     }
 
     @Test
     public void addingMatchGrowsMatchdayListByOne() {
         matchday.addMatch(new Match());
-        assertThat(matchday.matchList().size()).isEqualTo(1);
+        assertThat(matchday.getMatchList().size()).isEqualTo(1);
     }
 
     @Test
     public void addedMatchIsIncludedInMatchdayList() {
         Match match = new Match();
         matchday.addMatch(match);
-        assertThat(matchday.matchList()).contains(match);
+        assertThat(matchday.getMatchList()).contains(match);
     }
 }

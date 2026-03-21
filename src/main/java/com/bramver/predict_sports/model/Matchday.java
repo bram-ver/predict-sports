@@ -2,23 +2,29 @@ package com.bramver.predict_sports.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.MappedCollection;
 
 public class Matchday {
-    private List<Match> matchList;
+    @Id
     private Long id;
 
+    @MappedCollection(idColumn = "MATCHDAY_ID")
+    private List<Match> matchList;
+    private String season;
 
-    public Matchday(Long id) {
-        this.id = id;
-    }
-
-    public Matchday() {
-        this(null);
+    public Matchday(String season) {
         this.matchList = new ArrayList<>();
+        this.season = season;
     }
 
+    public Matchday() {}
 
-    public List<Match> matchList() {
+    public String getSeason() {
+        return this.season;
+    }
+
+    public List<Match> getMatchList() {
         return this.matchList;
     }
 
