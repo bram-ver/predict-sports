@@ -4,10 +4,10 @@ import java.util.Optional;
 import com.bramver.predict_sports.model.Matchday;
 import org.springframework.http.ResponseEntity;
 import com.bramver.predict_sports.repository.MatchdayRepository;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import java.net.URI;
 
 @RestController
 @RequestMapping("/api/matchday")
@@ -27,4 +27,17 @@ public class MatchdayController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    @PostMapping
+    private ResponseEntity<Void> createMatchday(@RequestBody Matchday newMatchdayRequest, UriComponentsBuilder ucb) {
+        Matchday savedMatchday = matchdayRepository.save(newMatchdayRequest);
+
+        URI locationOfNewMatchday = ucb.
+                path("api/matchday/{id}")
+                .buildAndExpand(savedMatchday.getId())
+                .toUri();
+
+        return ResponseEntity.created(locationOfNewMatchday).build();
+    }
+
 }

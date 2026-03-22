@@ -1,15 +1,23 @@
 package com.bramver.predict_sports;
 
+import com.bramver.predict_sports.model.Matchday;
+import com.jayway.jsonpath.DocumentContext;
+import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -20,6 +28,9 @@ class PredictSportsApplicationTests {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Test
     @WithMockUser
@@ -46,5 +57,33 @@ class PredictSportsApplicationTests {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    @WithMockUser
+    void shouldCreateANewMatchday() throws Exception {
+        String inputSeason = "2025/2026";
+        Matchday matchday = new Matchday(inputSeason);
 
+        String location = mockMvc.perform(post("/api/matchday")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(matchday)))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getHeader("Location");
+
+        assertThat(location).isNotNull();
+
+        String getResponseBody = mockMvc.perform(get(location))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        DocumentContext documentContext = JsonPath.parse(getResponseBody);
+        Number id = documentContext.read("$.id");
+        String getSeason = documentContext.read("$.season");
+        assertThat(id).isNotNull();
+        assertThat(getSeason).isEqualTo(inputSeason);
+    }
 }
