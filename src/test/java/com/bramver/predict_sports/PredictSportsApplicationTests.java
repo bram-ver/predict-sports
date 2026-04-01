@@ -15,6 +15,8 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.List;
+
 import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -31,6 +33,9 @@ class PredictSportsApplicationTests {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    private final int mockDatabaseSize = 3;
+
 
     @Test
     @WithMockUser
@@ -56,6 +61,36 @@ class PredictSportsApplicationTests {
         mockMvc.perform(get("/api/matchday/-1"))
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    @WithMockUser
+    void shouldReturnAllMatchdaysWhenListIsRequested() throws Exception {
+        String responseString = mockMvc.perform(get("/api/matchday"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(this.mockDatabaseSize))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+       List<String> responseSeasonList = JsonPath.parse(responseString).read("$..season");
+        assertThat(responseSeasonList).containsExactlyInAnyOrder("2025/2026", "2025/2026", "2026/2027");
+    }
+
+    @Test
+    @WithMockUser
+    void shouldReturnAPageOfMatchdays() throws Exception {
+        int testSize = 1;
+        String responseString = mockMvc.perform(get("/api/matchday?page=0&size=" + testSize))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        List<String> responseMatchdayList = JsonPath.parse(responseString).read("$[*]");
+        assertThat(responseMatchdayList.size()).isEqualTo(testSize);
+
+    }
+
 
     @Test
     @WithMockUser
